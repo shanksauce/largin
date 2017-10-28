@@ -1,0 +1,23 @@
+{
+  "name": "largin",
+  "version": "0.0.1",
+  "description": "Flargin",
+  "main": "index.js",
+  "author": "Ben Shank <ben@shankware.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url" : "https://github.com/shanksauce/largin.git"
+  },
+  "dependencies": {
+    "chalk": "2.3.0",
+    "nan": "2.7.0"
+  },
+  "scripts": {
+    "install": "node-gyp rebuild && node-gyp clean"
+  },
+  "binary": {
+    "module_name": "murmur3",
+    "module_path": "./lib"
+  }
+}

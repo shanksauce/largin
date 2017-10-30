@@ -18,10 +18,10 @@ const colors = {
 const callStackCache = Object.create(null);
 const rSplit = /\//i;
 const rSkip = new RegExp([
-  'logger\.js',
+  'largin\/index\.js',
   '\/node_modules',
   'events\.js',
-  'process',
+  'process\b',
   'next_tick\.js',
   'native',
   'internal',
@@ -29,8 +29,6 @@ const rSkip = new RegExp([
 ].join('|'), 'i');
 
 const traceCaller = callStack => {
-  callStack = callStack || new Error().stack;
-  if (Array.isArray(callStack)) callStack = callStack.join('\n');
   const sh = murmur3(Buffer.from(callStack)).readUInt32BE();
   if (!(sh in callStackCache)) {
     if (!Array.isArray(callStack)) callStack = callStack.split('\n');

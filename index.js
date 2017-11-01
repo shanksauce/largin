@@ -64,11 +64,15 @@ const flargin = spec => {
   return function() {
     const now = new Date().toISOString().replace(/T/,' ').replace(/Z$/,'');
     const caller = traceCaller(new Error().stack);
+    const isError = spec.summarizeErrors && arguments.length === 1 &&
+        arguments[0] instanceof Error;
+    const message = isError ? `${arguments[0].name}: ${arguments[0].message}` :
+      util.format(...arguments);
     process.stdout.write([
       colorize(spec.level.charAt(0).toUpperCase(), 1),
       colorize(now, 0),
       colorize(caller, 1),
-      util.format(...arguments),
+      message,
       '\n'
     ].join('  '));
   };
@@ -76,11 +80,15 @@ const flargin = spec => {
 
 module.exports = class Largin {
   static instance(opts) {
-    opts = opts || {};
+    opts = opts || {
+      noColor: false,
+      summarizeErrors: true
+    };
     if ('info' in self) return self;
     self = {};
     Object.keys(colors).forEach(level => self[level] = flargin({
       noColor: opts.noColor,
+      summarizeErrors: opts.summarizeErrors,
       level: level
     }));
     module.exports = self;

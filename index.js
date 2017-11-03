@@ -65,7 +65,7 @@ const traceCaller = callStack => {
 };
 
 const flargin = spec => {
-  const {noColor, summarizeErrors, severity} = spec;
+  const {noColor, expandErrors, severity} = spec;
   const colorize = (arg, i) => {
     if (noColor) return arg;
     let color = ['gray'][i % 1];
@@ -75,7 +75,7 @@ const flargin = spec => {
   return function() {
     const now = new Date().toISOString().replace(/T/, ' ').replace(/Z$/, '');
     const caller = traceCaller(new Error().stack);
-    const isError = summarizeErrors && arguments.length === 1 &&
+    const isError = !expandErrors && arguments.length === 1 &&
       arguments[0] instanceof Error;
     const message = isError ? `${arguments[0].name}: ${arguments[0].message}` :
       util.format(...arguments);
@@ -93,13 +93,13 @@ module.exports = class Largin {
   static instance(opts) {
     opts = opts || {
       noColor: false,
-      summarizeErrors: true
+      expandErrors: false
     };
     if ('info' in self) return self;
     self = {};
     Object.keys(colors).forEach(severity => self[severity] = flargin({
       noColor: opts.noColor,
-      summarizeErrors: opts.summarizeErrors,
+      expandErrors: opts.expandErrors,
       severity: severity
     }));
     module.exports = self;

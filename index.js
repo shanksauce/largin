@@ -15,7 +15,7 @@ const colors = {
   error: 'red'
 };
 
-const callStackCache = Object.create(null);
+const callStackCache = new Map();
 const rSplit = /\//i;
 const rSkip = new RegExp([
   '_stream_readable\.js',
@@ -40,7 +40,7 @@ const padr = (str, padding = 0) => {
 const traceCaller = callStack => {
   const sh = murmur3(Buffer.from(callStack)).readUInt32BE();
   if (!(sh in callStackCache)) {
-    callStackCache[sh] = callStack
+    callStackCache.set(sh, callStack
       .split('\n')
       .filter(x => !rSkip.test(x))
       .map(line => {
@@ -58,9 +58,9 @@ const traceCaller = callStack => {
         return path;
       })
       .filter(line => line)
-      .pop();
+      .pop());
   }
-  const message = callStackCache[sh];
+  const message = callStackCache.get(sh);
   return `${padr(message, padding - message.length)}`;
 };
 

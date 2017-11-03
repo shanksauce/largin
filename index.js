@@ -18,15 +18,23 @@ const colors = {
 const callStackCache = Object.create(null);
 const rSplit = /\//i;
 const rSkip = new RegExp([
-  'largin\/index\.js',
+  '_stream_readable\.js',
   '\/node_modules',
   'events\.js',
-  'process\b',
-  'next_tick\.js',
-  'native',
   'internal',
-  '_stream_readable\.js'
+  'largin\/index\.js',
+  'native',
+  'next_tick\.js',
+  'process\b'
 ].join('|'), 'i');
+
+const padlr = (str, padding = 0) => {
+  padding += 1;
+  const whitespace = [...(function*() {
+    while ((--padding)) yield ' ';
+  }())];
+  return `${whitespace}${str}${whitespace}`;
+};
 
 const traceCaller = callStack => {
   const sh = murmur3(Buffer.from(callStack)).readUInt32BE();
@@ -46,7 +54,7 @@ const traceCaller = callStack => {
         if (!subDirectory) return null;
         const path = `${subDirectory}/${filename}:${lineNumber}`;
         padding = Math.max(padding, path.length);
-        return path;
+        return `${padlr(path, Math.ceil((padding - path.length) / 2))}`;
       })
       .filter(line => line)
       .pop();
@@ -55,21 +63,22 @@ const traceCaller = callStack => {
 };
 
 const flargin = spec => {
+  const {noColor, summarizeErrors, severity} = spec;
   const colorize = (arg, i) => {
-    if (spec.noColor) return arg;
+    if (noColor) return arg;
     let color = ['gray'][i % 1];
-    if (i === 1) color = colors[spec.level];
+    if (i === 1) color = colors[severity];
     return chalk[color](arg);
   };
   return function() {
-    const now = new Date().toISOString().replace(/T/,' ').replace(/Z$/,'');
+    const now = new Date().toISOString().replace(/T/, ' ').replace(/Z$/, '');
     const caller = traceCaller(new Error().stack);
-    const isError = spec.summarizeErrors && arguments.length === 1 &&
-        arguments[0] instanceof Error;
+    const isError = summarizeErrors && arguments.length === 1 &&
+      arguments[0] instanceof Error;
     const message = isError ? `${arguments[0].name}: ${arguments[0].message}` :
       util.format(...arguments);
     process.stdout.write([
-      colorize(spec.level.charAt(0).toUpperCase(), 1),
+      colorize(severity.charAt(0).toUpperCase(), 1),
       colorize(now, 0),
       colorize(caller, 1),
       message,
@@ -86,10 +95,10 @@ module.exports = class Largin {
     };
     if ('info' in self) return self;
     self = {};
-    Object.keys(colors).forEach(level => self[level] = flargin({
+    Object.keys(colors).forEach(severity => self[severity] = flargin({
       noColor: opts.noColor,
       summarizeErrors: opts.summarizeErrors,
-      level: level
+      severity: severity
     }));
     module.exports = self;
     return self;

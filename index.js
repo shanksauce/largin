@@ -28,19 +28,20 @@ const rSkip = new RegExp([
   'process\b'
 ].join('|'), 'i');
 
-const padlr = (str, padding = 0) => {
+const padr = (str, padding = 0) => {
+  if (padding === 0) return str;
   padding += 1;
   const whitespace = [...(function*() {
     while ((--padding)) yield ' ';
-  }())];
-  return `${whitespace}${str}${whitespace}`;
+  }())].join('');
+  return `${str}${whitespace}`;
 };
 
 const traceCaller = callStack => {
   const sh = murmur3(Buffer.from(callStack)).readUInt32BE();
   if (!(sh in callStackCache)) {
-    if (!Array.isArray(callStack)) callStack = callStack.split('\n');
     callStackCache[sh] = callStack
+      .split('\n')
       .filter(x => !rSkip.test(x))
       .map(line => {
         const lineNumberAndColumn = line.split(':');
@@ -54,12 +55,13 @@ const traceCaller = callStack => {
         if (!subDirectory) return null;
         const path = `${subDirectory}/${filename}:${lineNumber}`;
         padding = Math.max(padding, path.length);
-        return `${padlr(path, Math.ceil((padding - path.length) / 2))}`;
+        return path;
       })
       .filter(line => line)
       .pop();
   }
-  return callStackCache[sh];
+  const message = callStackCache[sh];
+  return `${padr(message, padding - message.length)}`;
 };
 
 const flargin = spec => {

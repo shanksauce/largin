@@ -60,53 +60,59 @@ const traceCaller = callStack => {
         padding = Math.max(padding, path.length);
         return path;
       })
-      .filter(line => line)
+      .filter(line => Boolean(line))
       .pop());
   }
   const message = callStackCache.get(sh);
   return padr(message, padding - message.length);
 };
 
-const flargin = spec => {
-  const {noColor, expandErrors, severity} = spec;
+const flargin = opts => {
+  const {noColor, expandErrors, severity} = opts;
   const colorize = (arg, i) => {
     if (noColor) return arg;
     let color = ['gray'][i % 1];
     if (i === 1) color = colors[severity];
     return chalk[color](arg);
   };
-  return function() {
+  const log = function() {
     const now = new Date().toISOString().replace(/T/, ' ').replace(/Z$/, '');
     const caller = traceCaller(new Error().stack);
-    const isError = !expandErrors &&
-      arguments.length === 1 &&
-      arguments[0] instanceof Error;
-    const message = isError ? `${arguments[0].name}: ${arguments[0].message}` :
+    const arg0 = arguments[0];
+    const message = (arg0 instanceof Error && !expandErrors) ?
+      arg0.name + ': ' + arg0.message :
       util.format(...arguments);
-    process.stdout.write([
+    const line = [
       colorize(severity.charAt(0).toUpperCase(), 1),
       colorize(now, 0),
       colorize(caller, 1),
       message,
-      '\n'
-    ].join('  '));
+      log.newLine
+    ].join('  ');
+    process.stdout.write(line);
   };
+  log.newLine = '\n';
+  return log;
 };
 
-module.exports = class Largin {
+class Largin {
   static instance(opts) {
     opts = opts || {
       noColor: false,
       expandErrors: false
     };
-    if ('info' in self) return self;
-    self = {};
-    Object.keys(colors).forEach(severity => self[severity] = flargin({
-      noColor: opts.noColor,
-      expandErrors: opts.expandErrors,
-      severity: severity
-    }));
+    if (self instanceof Largin) return self;
+    self = new Largin();
+    Object.keys(colors).forEach(severity => {
+      opts.severity = severity;
+      Object.defineProperty(self, severity, {
+        value: flargin(opts),
+        enumerable: true
+      });
+    });
     module.exports = self;
     return self;
   }
-};
+}
+
+module.exports = Largin;

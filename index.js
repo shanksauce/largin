@@ -3,7 +3,6 @@ const util = require('util');
 const chalk = require('chalk');
 const {murmur3} = require('./lib/murmur3.node');
 
-let padding = 1;
 let self = {};
 
 const colors = {
@@ -28,12 +27,16 @@ const rSkip = new RegExp([
   'process\b'
 ].join('|'), 'i');
 
+let padding = 1;
+
+const genWhitespace = function*(padding) {
+  while ((--padding)) yield ' ';
+};
+
 const padr = (str, padding = 0) => {
   if (padding === 0) return str;
   padding += 1;
-  const whitespace = [...(function*() {
-    while ((--padding)) yield ' ';
-  }())].join('');
+  const whitespace = [...genWhitespace(padding)].join('');
   return `${str}${whitespace}`;
 };
 
@@ -61,7 +64,7 @@ const traceCaller = callStack => {
       .pop());
   }
   const message = callStackCache.get(sh);
-  return `${padr(message, padding - message.length)}`;
+  return padr(message, padding - message.length);
 };
 
 const flargin = spec => {
@@ -75,7 +78,8 @@ const flargin = spec => {
   return function() {
     const now = new Date().toISOString().replace(/T/, ' ').replace(/Z$/, '');
     const caller = traceCaller(new Error().stack);
-    const isError = !expandErrors && arguments.length === 1 &&
+    const isError = !expandErrors &&
+      arguments.length === 1 &&
       arguments[0] instanceof Error;
     const message = isError ? `${arguments[0].name}: ${arguments[0].message}` :
       util.format(...arguments);

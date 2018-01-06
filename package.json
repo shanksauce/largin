@@ -1,6 +1,6 @@
 {
   "name": "largin",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Flargin",
   "main": "index.js",
   "author": "Ben Shank <ben@shankware.com>",
@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "chalk": "2.3.0",
-    "nan": "2.7.0"
+    "nan": "^2.8.0"
   },
   "scripts": {
     "install": "node-gyp rebuild && node-gyp clean"

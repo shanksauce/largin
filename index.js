@@ -63,7 +63,7 @@ const traceCaller = callStack => {
       .filter(line => Boolean(line))
       .pop());
   }
-  const message = callStackCache.get(sh);
+  const message = callStackCache.get(sh) || '';
   return padr(message, padding - message.length);
 };
 

@@ -68,7 +68,7 @@ const traceCaller = callStack => {
 };
 
 const flargin = opts => {
-  const {noColor, expandErrors, severity} = opts;
+  const {noColor, noTimestamps, expandErrors, severity} = opts;
   const colorize = (arg, i) => {
     if (noColor) return arg;
     let color = ['gray'][i % 1];
@@ -84,11 +84,11 @@ const flargin = opts => {
       util.format(...arguments);
     const line = [
       colorize(severity.charAt(0).toUpperCase(), 1),
-      colorize(now, 0),
+      !noTimestamps ? colorize(now, 0) : null,
       colorize(caller, 1),
       message,
       log.newLine
-    ].join('  ');
+    ].filter(it => it).join('  ');
     process.stdout.write(line);
   };
   log.newLine = '\n';
@@ -99,6 +99,7 @@ class Largin {
   static instance(opts) {
     opts = opts || {
       noColor: false,
+      noTimestamps: false,
       expandErrors: false
     };
     if (self instanceof Largin) return self;

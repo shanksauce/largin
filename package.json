@@ -10,8 +10,8 @@
     "url": "https://github.com/shanksauce/largin.git"
   },
   "dependencies": {
-    "chalk": "2.3.0",
-    "nan": "^2.8.0"
+    "chalk": "2.4.2",
+    "nan": "2.14.0"
   },
   "scripts": {
     "install": "node-gyp rebuild && node-gyp clean"

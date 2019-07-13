@@ -17,13 +17,13 @@ NAN_METHOD(murmur3) {
   }
 
   if (info.Length() == 2 && info[1]->IsNumber()) {
-    bits = (uint32_t) info[1]->NumberValue();
+    bits = Nan::To<uint32_t>(info[1]).FromJust();
     if (bits != 32 && bits != 128) {
       ThrowError("Must be either 32 or 128 bits");
     }
   }
-
-  Local<Object> bufferObj = info[0]->ToObject();
+  
+  Local<Object> bufferObj = Nan::To<Object>(info[0]).ToLocalChecked();
   buffer = (uint8_t*) node::Buffer::Data(bufferObj);
   size = node::Buffer::Length(bufferObj);
 

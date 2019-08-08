@@ -1,6 +1,6 @@
 {
   "name": "largin",
-  "version": "0.0.15",
+  "version": "0.0.16",
   "description": "Flargin",
   "main": "index.js",
   "author": "Ben Shank <ben@shankware.com>",
@@ -15,7 +15,7 @@
   },
   "scripts": {
     "install": "node-gyp rebuild && node-gyp clean",
-    "vb": "./scripts/vb.js && git push && npm publish"
+    "vb": "./scripts/vb.js && git commit -am 'wip' && git push && npm publish"
   },
   "binary": {
     "module_name": "murmur3",

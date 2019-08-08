@@ -1,7 +1,7 @@
 'use strict';
 const util = require('util');
 const chalk = require('chalk');
-const {murmur3} = require('./lib/murmur3.node');
+const { murmur3 } = require('./lib/murmur3.node');
 
 let instance = {};
 

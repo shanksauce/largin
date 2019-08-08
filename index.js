@@ -3,7 +3,7 @@ const util = require('util');
 const chalk = require('chalk');
 const {murmur3} = require('./lib/murmur3.node');
 
-let self = {};
+let instance = {};
 
 const colors = {
   silly: 'magenta',
@@ -27,7 +27,7 @@ const rSkip = new RegExp([
   'process\b'
 ].join('|'), 'i');
 
-let padding = 1;
+let padding = 0;
 
 const genWhitespace = function*(padding) {
   while ((--padding)) yield ' ';
@@ -40,13 +40,13 @@ const padr = (str, padding = 0) => {
   return `${str}${whitespace}`;
 };
 
-const traceCaller = callStack => {
+const traceCaller = (callStack) => {
   const sh = murmur3(Buffer.from(callStack)).readUInt32BE();
   if (!(sh in callStackCache)) {
     callStackCache.set(sh, callStack
       .split('\n')
-      .filter(x => !rSkip.test(x))
-      .map(line => {
+      .filter((x) => !rSkip.test(x))
+      .map((line) => {
         const lineNumberAndColumn = line.split(':');
         const lineNumber = lineNumberAndColumn[1];
         const filenamePieces = lineNumberAndColumn[0]
@@ -60,15 +60,15 @@ const traceCaller = callStack => {
         padding = Math.max(padding, path.length);
         return path;
       })
-      .filter(line => Boolean(line))
+      .filter((line) => Boolean(line))
       .pop());
   }
   const message = callStackCache.get(sh) || '';
   return padr(message, padding - message.length);
 };
 
-const flargin = opts => {
-  const {noColor, noTimestamps, expandErrors, severity} = opts;
+const flargin = (opts) => {
+  const { noColor, noTimestamps, expandErrors, severity } = opts;
   const colorize = (arg, i) => {
     if (noColor) return arg;
     let color = ['gray'][i % 1];
@@ -79,16 +79,18 @@ const flargin = opts => {
     const now = new Date().toISOString().replace(/T/, ' ').replace(/Z$/, '');
     const caller = traceCaller(new Error().stack);
     const arg0 = arguments[0];
-    const message = (arg0 instanceof Error && !expandErrors) ?
-      arg0.name + ': ' + arg0.message :
-      util.format(...arguments);
+    const message = arg0 instanceof Error && !expandErrors ?
+      `${arg0.name}: ${arg0.message}` :
+      (arg0 instanceof Object && !(arg0 instanceof Error)) ?
+        JSON.stringify(arg0) :
+        util.format(...arguments);
     const line = [
       colorize(severity.charAt(0).toUpperCase(), 1),
       !noTimestamps ? colorize(now, 0) : null,
       colorize(caller, 1),
       message,
       log.newLine
-    ].filter(it => it).join('  ');
+    ].filter((it) => !!it).join('  ');
     process.stdout.write(line);
   };
   log.newLine = '\n';
@@ -96,23 +98,25 @@ const flargin = opts => {
 };
 
 class Largin {
+  static newInstance(opts) {
+    instance = null;
+    return Largin.instance(opts);
+  }
+
   static instance(opts) {
     opts = opts || {
       noColor: false,
       noTimestamps: false,
       expandErrors: false
     };
-    if (self instanceof Largin) return self;
-    self = new Largin();
-    Object.keys(colors).forEach(severity => {
+    if (instance instanceof Largin) return instance;
+    instance = new Largin();
+    Object.keys(colors).forEach((severity) => {
       opts.severity = severity;
-      Object.defineProperty(self, severity, {
-        value: flargin(opts),
-        enumerable: true
-      });
+      instance[severity] = flargin(opts);
     });
-    module.exports = self;
-    return self;
+    module.exports = instance;
+    return instance;
   }
 }
 

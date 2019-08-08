@@ -76,14 +76,20 @@ const flargin = (opts) => {
     return chalk[color](arg);
   };
   const log = function() {
+    const args = Array.from(arguments)
+      .map((it) => (it instanceof Error && !expandErrors ?
+        `${it.name}: ${it.message}` :
+        it))
+      .map((it) => (it instanceof Object && !(it instanceof Error) ?
+        JSON.stringify(it) :
+        it));
+
     const now = new Date().toISOString().replace(/T/, ' ').replace(/Z$/, '');
     const caller = traceCaller(new Error().stack);
-    const arg0 = arguments[0];
-    const message = arg0 instanceof Error && !expandErrors ?
-      `${arg0.name}: ${arg0.message}` :
-      (arg0 instanceof Object && !(arg0 instanceof Error)) ?
-        JSON.stringify(arg0) :
-        util.format(...arguments);
+    const arg0 = args[0];
+
+    const message = util.format(...args);
+
     const line = [
       colorize(severity.charAt(0).toUpperCase(), 1),
       !noTimestamps ? colorize(now, 0) : null,

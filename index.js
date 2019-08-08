@@ -18,7 +18,7 @@ const callStackCache = new Map();
 const rSplit = /\//i;
 const rSkip = new RegExp([
   '_stream_readable\.js',
-  '\/node_modules',
+  // '\/node_modules',
   'events\.js',
   'internal',
   'largin\/index\.js',
@@ -43,7 +43,7 @@ const padr = (str, padding = 0) => {
 const traceCaller = (callStack) => {
   const sh = murmur3(Buffer.from(callStack)).readUInt32BE();
   if (!(sh in callStackCache)) {
-    callStackCache.set(sh, callStack
+    const filtered = callStack
       .split('\n')
       .filter((x) => !rSkip.test(x))
       .map((line) => {
@@ -60,8 +60,8 @@ const traceCaller = (callStack) => {
         padding = Math.max(padding, path.length);
         return path;
       })
-      .filter((line) => Boolean(line))
-      .pop());
+      .filter((line) => Boolean(line));
+    callStackCache.set(sh, filtered.shift());
   }
   const message = callStackCache.get(sh) || '';
   return padr(message, padding - message.length);
@@ -77,9 +77,11 @@ const flargin = (opts) => {
   };
   const log = function() {
     const args = Array.from(arguments)
-      .map((it) => (it instanceof Error && !expandErrors ?
-        `${it.name}: ${it.message}` :
-        it))
+      .map((it) => it instanceof Error ?
+        !expandErrors ?
+          `${it.name}: ${it.message}` :
+          `${it.stack}\n` :
+        it)
       .map((it) => (it instanceof Object && !(it instanceof Error) ?
         JSON.stringify(it) :
         it));
@@ -92,7 +94,7 @@ const flargin = (opts) => {
       colorize(caller, 1),
       message,
       log.newLine
-    ].filter((it) => !!it).join('  ');
+    ].filter((it) => Boolean(it)).join('  ');
     process.stdout.write(line);
   };
   log.newLine = '\n';
@@ -100,7 +102,7 @@ const flargin = (opts) => {
 };
 
 class Largin {
-  static newInstance(opts) {
+  instance(opts) {
     instance = null;
     return Largin.instance(opts);
   }

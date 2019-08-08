@@ -83,13 +83,9 @@ const flargin = (opts) => {
       .map((it) => (it instanceof Object && !(it instanceof Error) ?
         JSON.stringify(it) :
         it));
-
     const now = new Date().toISOString().replace(/T/, ' ').replace(/Z$/, '');
     const caller = traceCaller(new Error().stack);
-    const arg0 = args[0];
-
     const message = util.format(...args);
-
     const line = [
       colorize(severity.charAt(0).toUpperCase(), 1),
       !noTimestamps ? colorize(now, 0) : null,

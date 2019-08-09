@@ -12,7 +12,8 @@ NAN_METHOD(murmur3) {
   uint32_t bits = 32;
 
   if (info.Length() == 0) {
-    info.GetReturnValue().Set(NewBuffer((char*) buffer, size).ToLocalChecked());
+    info.GetReturnValue().Set(NewBuffer((char*) buffer, size)
+      .ToLocalChecked());
     return;
   }
 
@@ -22,7 +23,7 @@ NAN_METHOD(murmur3) {
       ThrowError("Must be either 32 or 128 bits");
     }
   }
-  
+
   Local<Object> bufferObj = Nan::To<Object>(info[0]).ToLocalChecked();
   buffer = (uint8_t*) node::Buffer::Data(bufferObj);
   size = node::Buffer::Length(bufferObj);

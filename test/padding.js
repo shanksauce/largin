@@ -1,16 +1,24 @@
-/*eslint no-invalid-this: "off"*/
 'use strict';
 const crypto = require('crypto');
-const log = require('../index.js').instance({
-  noTimestamps: true,
-  noColor: true,
+let log = require('../index.js').instance({
+  noTimestamps: false,
+  noColor: false,
   expandErrors: false
 });
 
 describe('Padding', () => {
   /**/
   it('should pad message', function() {
-    this.timeout(0);
+    this.timeout(5000);
+
+    setInterval(() => {
+      log = require('../index.js').instance({
+        noTimestamps: Math.random() < 0.5,
+        noColor: Math.random() < 0.5,
+        expandErrors: Math.random() < 0.5
+      });
+    }, 2000);
+
 
     const makeStr = () => crypto
       .randomBytes(Math.ceil(Math.random() * 20))
@@ -29,7 +37,7 @@ describe('Padding', () => {
       value7: makeStr()
     }), 200);
 
-    setTimeout(() => log.info(new Error(makeStr())), 500);
+    setInterval(() => log.error(new Error(makeStr())), 500);
   });
   /***/
 });

@@ -3,7 +3,7 @@ const util = require('util');
 const chalk = require('chalk');
 const { murmur3 } = require('./lib/murmur3.node');
 
-let instance = {};
+let instance;
 
 const colors = {
   silly: 'magenta',
@@ -15,10 +15,8 @@ const colors = {
 };
 
 const callStackCache = new Map();
-const rSplit = /\//i;
 const rSkip = new RegExp([
   '_stream_readable\.js',
-  // '\/node_modules',
   'events\.js',
   'internal',
   'largin\/index\.js',
@@ -26,19 +24,6 @@ const rSkip = new RegExp([
   'next_tick\.js',
   'process\b'
 ].join('|'), 'i');
-
-let padding = 0;
-
-const genWhitespace = function*(padding) {
-  while ((--padding)) yield ' ';
-};
-
-const padr = (str, padding = 0) => {
-  if (padding === 0) return str;
-  padding += 1;
-  const whitespace = [...genWhitespace(padding)].join('');
-  return `${str}${whitespace}`;
-};
 
 const traceCaller = (callStack) => {
   const sh = murmur3(Buffer.from(callStack)).readUInt32BE();
@@ -52,30 +37,22 @@ const traceCaller = (callStack) => {
         const filenamePieces = lineNumberAndColumn[0]
           .replace(/^.*?(?=\/)/, '')
           .replace(/\/[0-9]+\./, '/')
-          .split(rSplit);
+          .split(/\//i);
         const filename = filenamePieces.pop();
         const subDirectory = filenamePieces.pop();
         if (!subDirectory) return null;
-        const path = `${subDirectory}/${filename}:${lineNumber}`;
-        padding = Math.max(padding, path.length);
-        return path;
+        return `${subDirectory}/${filename}:${lineNumber}`;
       })
       .filter((line) => Boolean(line));
     callStackCache.set(sh, filtered.shift());
   }
-  const message = callStackCache.get(sh) || '';
-  return padr(message, padding - message.length);
+  return callStackCache.get(sh) || '';
 };
 
 const flargin = (opts) => {
   const { noColor, noTimestamps, expandErrors, severity } = opts;
-  const colorize = (arg, i) => {
-    if (noColor) return arg;
-    let color = ['gray'][i % 1];
-    if (i === 1) color = colors[severity];
-    return chalk[color](arg);
-  };
-  const log = function() {
+  const colorize = (it) => !noColor ? chalk[colors[severity]](it) : it;
+  return function() {
     const args = Array.from(arguments)
       .map((it) => it instanceof Error ?
         !expandErrors ?
@@ -85,20 +62,24 @@ const flargin = (opts) => {
       .map((it) => (it instanceof Object && !(it instanceof Error) ?
         JSON.stringify(it) :
         it));
-    const now = new Date().toISOString().replace(/T/, ' ').replace(/Z$/, '');
+    const now = new Date().toISOString();
     const caller = traceCaller(new Error().stack);
     const message = util.format(...args);
     const line = [
-      colorize(severity.charAt(0).toUpperCase(), 1),
-      !noTimestamps ? colorize(now, 0) : null,
-      colorize(caller, 1),
+      colorize(severity.charAt(0).toUpperCase()),
+      !noTimestamps ?
+        !noColor ?
+          chalk.gray(now) :
+          now :
+        null,
+      colorize(caller),
       message,
-      log.newLine
-    ].filter((it) => Boolean(it)).join('  ');
+      '\n'
+    ]
+      .filter((it) => Boolean(it))
+      .join('  ');
     process.stdout.write(line);
   };
-  log.newLine = '\n';
-  return log;
 };
 
 class Largin {
@@ -124,4 +105,4 @@ class Largin {
   }
 }
 
-module.exports = Largin;
+module.exports = Largin.instance();

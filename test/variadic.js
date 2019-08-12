@@ -1,6 +1,5 @@
 'use strict';
-const Largin = require('../index.js');
-let log = Largin.instance({
+let log = require('../index.js').instance({
   noTimestamps: true,
   expandErrors: false
 });
@@ -15,7 +14,7 @@ describe('Variadic arguments', function() {
   });
 
   it('should log multiple types with error expansion', async function() {
-    log = Largin.instance({
+    log = log.instance({
       noTimestamps: true,
       expandErrors: true
     });
@@ -23,7 +22,7 @@ describe('Variadic arguments', function() {
   });
 
   it('should log multiple types', async function() {
-    log = Largin.instance({
+    log = log.instance({
       noTimestamps: true,
       expandErrors: false
     });

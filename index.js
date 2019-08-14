@@ -50,7 +50,13 @@ const traceCaller = (callStack) => {
 };
 
 const flargin = (opts) => {
-  const { noColor, noTimestamps, expandErrors, severity } = opts;
+  const {
+    noColor,
+    noTimestamps,
+    expandErrors,
+    expandObjects,
+    severity
+  } = opts;
   const colorize = (it) => !noColor ? chalk[colors[severity]](it) : it;
   return function() {
     const args = Array.from(arguments)
@@ -60,7 +66,9 @@ const flargin = (opts) => {
           `${it.stack}\n` :
         it)
       .map((it) => (it instanceof Object && !(it instanceof Error) ?
-        JSON.stringify(it) :
+        !expandObjects ?
+          JSON.stringify(it) :
+          util.inspect(it, {depth: null, compact: false}) :
         it));
     const now = new Date().toISOString();
     const caller = traceCaller(new Error().stack);
@@ -92,7 +100,8 @@ class Largin {
     opts = opts || {
       noColor: false,
       noTimestamps: false,
-      expandErrors: false
+      expandErrors: false,
+      expandObjects: false
     };
     if (instance instanceof Largin) return instance;
     instance = new Largin();

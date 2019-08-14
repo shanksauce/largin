@@ -15,7 +15,8 @@ describe('Padding', () => {
       log = require('../index.js').instance({
         noTimestamps: Math.random() < 0.5,
         noColor: Math.random() < 0.5,
-        expandErrors: Math.random() < 0.5
+        expandErrors: Math.random() < 0.5,
+        expandObjects: Math.random() < 0.5
       });
     }, 2000);
 

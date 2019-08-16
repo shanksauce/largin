@@ -14,6 +14,8 @@ const colors = {
   error: 'red'
 };
 
+const severityValues = new Map(Object.keys(colors).map((it, i) => [it, i]));
+
 const callStackCache = new Map();
 const rSkip = new RegExp([
   '_stream_readable\.js',
@@ -55,10 +57,14 @@ const flargin = (opts) => {
     noTimestamps,
     expandErrors,
     expandObjects,
-    severity
+    severity,
+    maxSeverity
   } = opts;
   const colorize = (it) => !noColor ? chalk[colors[severity]](it) : it;
   return function() {
+    if (severityValues.get(severity) < severityValues.get(maxSeverity)) {
+      return;
+    }
     const args = Array.from(arguments)
       .map((it) => it instanceof Error ?
         !expandErrors ?
@@ -101,8 +107,10 @@ class Largin {
       noColor: false,
       noTimestamps: false,
       expandErrors: false,
-      expandObjects: false
+      expandObjects: false,
+      severity: 'silly'
     };
+    opts.maxSeverity = opts.severity || 'silly';
     if (instance instanceof Largin) return instance;
     instance = new Largin();
     Object.keys(colors).forEach((severity) => {

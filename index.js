@@ -32,7 +32,7 @@ const traceCaller = (callStack) => {
   if (!(sh in callStackCache)) {
     const filtered = callStack
       .split('\n')
-      .filter((x) => !rSkip.test(x))
+      .filter((it) => !rSkip.test(it))
       .map((line) => {
         const lineNumberAndColumn = line.split(':');
         const lineNumber = lineNumberAndColumn[1];
@@ -42,7 +42,7 @@ const traceCaller = (callStack) => {
           .split(/\//i);
         const filename = filenamePieces.pop();
         const subDirectory = filenamePieces.pop();
-        if (!subDirectory) return null;
+        if (!subDirectory) return;
         return `${subDirectory}/${filename}:${lineNumber}`;
       })
       .filter((line) => Boolean(line));
@@ -70,12 +70,14 @@ const flargin = (opts) => {
         !expandErrors ?
           `${it.name}: ${it.message}` :
           `${it.stack}\n` :
-        it)
+        it
+      )
       .map((it) => (it instanceof Object && !(it instanceof Error) ?
         !expandObjects ?
           JSON.stringify(it) :
           util.inspect(it, {depth: null, compact: false}) :
-        it));
+        it)
+      );
     const now = new Date().toISOString();
     const caller = traceCaller(new Error().stack);
     const message = util.format(...args);

@@ -20,5 +20,8 @@
   "binary": {
     "module_name": "murmur3",
     "module_path": "./lib"
+  },
+  "devDependencies": {
+    "jest": "^27.0.4"
   }
 }

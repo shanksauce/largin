@@ -9,8 +9,6 @@ let log = require('../index.js').instance({
 describe('Padding', () => {
   /**/
   it('should pad message', function() {
-    this.timeout(5000);
-
     setInterval(() => {
       log = require('../index.js').instance({
         noTimestamps: Math.random() < 0.5,
